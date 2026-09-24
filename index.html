@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض الفن | عائشة وهاجر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --deep-brown: #362219;
+            --warm-beige: #F4EAD3;
+            --olive-green: #5B7052;
+            --soft-beige: #FAF6ED;
+            --danger-red: #A84242;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--warm-beige); color: var(--deep-brown); line-height: 1.6; }
+     .auth-bar { background-color: var(--deep-brown); color: var(--soft-beige); padding: 0.6rem 1.2rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; }
+     .auth-btn { background-color: var(--olive-green); color: var(--soft-beige); border: 1px solid var(--soft-beige); padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        header { background-color: var(--deep-brown); color: var(--soft-beige); padding: 3rem 1.5rem; text-align: center; border-bottom: 8px solid var(--olive-green); }
+        header h1 { font-family: 'Aref Ruqaa', serif; font-size: 3rem; margin-bottom: 0.5rem; }
+        header p { font-size: 1.2rem; color: var(--warm-beige); }
+        nav { display: flex; justify-content: center; gap: 1rem; padding: 1.5rem; background-color: var(--olive-green); border-bottom: 4px solid var(--deep-brown); flex-wrap: wrap; }
+     .filter-btn { background-color: var(--soft-beige); color: var(--deep-brown); border: 2px solid var(--deep-brown); padding: 0.5rem 1.5rem; font-weight: 700; border-radius: 20px; cursor: pointer; box-shadow: 3px 3px 0px var(--deep-brown); transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+     .filter-btn:active { transform: scale(0.85) rotate(-2deg); }
+     .filter-btn.active { background-color: var(--deep-brown); color: var(--soft-beige); box-shadow: 5px 5px 0px var(--olive-green); animation: cartoonPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes cartoonPop { 0% { transform: scale(1); } 30% { transform: scale(1.2) rotate(3deg); } 60% { transform: scale(0.95) rotate(-3deg); } 100% { transform: scale(1) rotate(0); } }
+     .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+     .upload-section { display: none; background-color: var(--soft-beige); border: 4px solid var(--deep-brown); border-radius: 16px; padding: 2rem; margin-bottom: 3rem; box-shadow: 8px 8px 0px var(--olive-green); }
+     .upload-section.active { display: block; }
+     .upload-section h2 { font-family: 'Aref Ruqaa', serif; font-size: 1.8rem; margin-bottom: 1.2rem; text-align: center; }
+     .upload-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+     .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+     .form-group.full-width { grid-column: span 2; }
+        input, textarea, select { padding: 0.7rem; border: 2px solid var(--deep-brown); border-radius: 8px; background-color: var(--warm-beige); color: var(--deep-brown); font-size: 1rem; }
+     .submit-btn { grid-column: span 2; background-color: var(--olive-green); color: var(--soft-beige); border: 3px solid var(--deep-brown); padding: 0.8rem; font-size: 1.1rem; font-weight: 700; border-radius: 10px; cursor: pointer; box-shadow: 4px 4px 0px var(--deep-brown); }
+     .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; }
+     .art-card { background: var(--soft-beige); border: 3px solid var(--deep-brown); border-radius: 12px; overflow: hidden; box-shadow: 6px 6px 0px var(--olive-green); display: flex; flex-direction: column; transition: transform 0.2s; }
+     .art-card:hover { transform: translateY(-4px); }
+     .art-img { width: 100%; height: 250px; object-fit: cover; border-bottom: 3px solid var(--deep-brown); cursor: zoom-in; }
+     .art-info { padding: 1rem; flex-grow: 1; display: flex; flex-direction: column; }
+     .art-title { font-size: 1.3rem; font-weight: 900; }
+     .art-artist { display: inline-block; background-color: var(--olive-green); color: var(--soft-beige); padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.85rem; margin-bottom: 0.5rem; width: fit-content; }
+     .visitor-actions { margin-top: 1rem; border-top: 2px solid var(--warm-beige); padding-top: 0.8rem; }
+     .like-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; }
+     .like-btn { background: none; border: 2px solid var(--deep-brown); border-radius: 20px; padding: 0.2rem 0.8rem; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 4px; }
+     .like-btn.liked { background-color: var(--danger-red); color: white; border-color: var(--danger-red); }
+     .comments-list { max-height: 120px; overflow-y: auto; font-size: 0.9rem; margin-bottom: 0.5rem; background: var(--warm-beige); border-radius: 8px; padding: 0.5rem; }
+     .comment-item { margin-bottom: 0.4rem; border-bottom: 1px dashed #ccc; padding-bottom: 0.2rem; }
+     .comment-form { display: flex; gap: 0.4rem; }
+     .comment-form input { flex: 1; padding: 0.4rem; }
+     .admin-actions { display: none; gap: 0.5rem; margin-top: 1rem; padding-top: 0.8rem; border-top: 2px dashed var(--deep-brown); }
+     .admin-actions.active { display: flex; }
+     .action-btn { flex: 1; padding: 0.4rem 0.6rem; border: 2px solid var(--deep-brown); border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+     .btn-edit { background-color: var(--warm-beige); color: var(--deep-brown); }
+     .btn-delete { background-color: var(--danger-red); color: var(--soft-beige); }
+     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+     .modal.active { display: flex; }
+     .modal-body { background: var(--soft-beige); border: 4px solid var(--deep-brown); padding: 2rem; border-radius: 12px; width: 340px; display: flex; flex-direction: column; gap: 1rem; }
+     .image-viewer { background: transparent; border: none; max-width: 90vw; max-height: 90vh; text-align: center; }
+     .image-viewer img { max-width: 100%; max-height: 85vh; border: 5px solid var(--soft-beige); border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+     .image-viewer p { color: white; margin-top: 0.8rem; font-size: 1.2rem; font-weight: bold; text-shadow: 1px 1px 3px black; }
+        footer { text-align: center; padding: 2rem; background-color: var(--deep-brown); color: var(--soft-beige); margin-top: 4rem; border-top: 4px solid var(--olive-green); }
+    </style>
+</head>
+<body>
+    <div class="auth-bar">
+        <span id="userStatus">وضع الزائر</span>
+        <div>
+            <button class="auth-btn" id="loginBtn" onclick="toggleModal(true)">تسجيل دخول الرسامين</button>
+            <button class="auth-btn" id="logoutBtn" style="display:none;" onclick="logout()">تسجيل خروج</button>
+        </div>
+    </div>
+    <header>
+        <h1>معرض الفن</h1>
+        <p>رسومات وفنون بأيدي عائشة وهاجر</p>
+    </header>
+    <nav>
+        <button class="filter-btn active" onclick="filterArt('all', event)">الكل</button>
+        <button class="filter-btn" onclick="filterArt('aisha', event)">رسومات عائشة</button>
+        <button class="filter-btn" onclick="filterArt('hajer', event)">رسومات هاجر</button>
+    </nav>
+    <div class="container">
+        <section class="upload-section" id="uploadSection">
+            <h2>إضافة لوحة جديدة للمعرض</h2>
+            <form class="upload-form" id="artworkForm">
+                <div class="form-group"><label>عنوان اللوحة:</label><input type="text" id="title" required></div>
+                <div class="form-group"><label>الفنانة:</label><select id="artist" required><option value="aisha">عائشة</option><option value="hajer">هاجر</option></select></div>
+                <div class="form-group full-width"><label>صورة اللوحة:</label><input type="file" id="imageFile" accept="image/*" required></div>
+                <div class="form-group full-width"><label>وصف اللوحة:</label><textarea id="description" rows="3"></textarea></div>
+                <button type="submit" class="submit-btn" id="submitBtn">نشر اللوحة</button>
+            </form>
+        </section>
+        <div class="gallery-grid" id="gallery"></div>
+    </div>
+
+    <div class="modal" id="loginModal"><div class="modal-body"><h3>تسجيل الدخول</h3><input type="email" id="loginEmail" placeholder="البريد الإلكتروني"><input type="password" id="loginPass" placeholder="كلمة المرور"><button class="submit-btn" onclick="login()">دخول</button><button class="auth-btn" onclick="toggleModal(false)" style="background:#888;">إلغاء</button></div></div>
+    <div class="modal" id="editModal"><div class="modal-body"><h3>تعديل اللوحة</h3><input type="text" id="editTitle" placeholder="عنوان اللوحة"><textarea id="editDescription" rows="4" placeholder="وصف اللوحة"></textarea><button class="submit-btn" onclick="saveEdit()">حفظ التعديل</button><button class="auth-btn" onclick="closeEdit()" style="background:#888;">إلغاء</button></div></div>
+    <div class="modal" id="imageModal" onclick="closeImage()"><div class="image-viewer"><img id="fullImage" src=""><p id="fullTitle"></p></div></div>
+
+    <footer><p>جميع الحقوق محفوظة © معرض عائشة وهاجر 2026</p></footer>
+
+    <script>
+        const SUPABASE_URL = "https://bphewlrauuaciedwzxjr.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwaGV3bHJhdXVhY2llZHd6eGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxODMzMzksImV4cCI6MjEwNTc1OTMzOX0.Ytifn_wCc-RXTfe_hL_nWCCK6f5YtLt3ffOSGIjcYJw";
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+        let artworksCache = {};
+        let editingId = null;
+
+        function esc(str) { const d = document.createElement('div'); d.textContent = str == null? '' : String(str); return d.innerHTML; }
+
+        _supabase.auth.onAuthStateChange((event, session) => {
+            currentUser = session?.user || null;
+            const uploadSection = document.getElementById('uploadSection');
+            const userStatus = document.getElementById('userStatus');
+            const loginBtn = document.getElementById('loginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (currentUser) {
+                let displayName = "الفنانة 🤎";
+                if (currentUser.email === 'haa784845@gmail.com') displayName = "الفنانة هاجر 🤎";
+                else if (currentUser.email === 'aishaghalb85@gmail.com') displayName = "الفنانة عائشة 🤎";
+                userStatus.textContent = `أهلاً بك: (${displayName})`;
+                uploadSection.classList.add('active');
+                loginBtn.style.display = 'none'; logoutBtn.style.display = 'inline-block';
+            } else {
+                userStatus.textContent = 'وضع الزائر'; uploadSection.classList.remove('active');
+                loginBtn.style.display = 'inline-block'; logoutBtn.style.display = 'none';
+            }
+            document.querySelectorAll('.admin-actions').forEach(el => { el.classList.toggle('active',!!currentUser); });
+        });
+
+        async function loadArtworks() {
+            const { data, error } = await _supabase.from('artworks').select('*').order('id', { ascending: false });
+            if (error) return console.error(error);
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = ''; artworksCache = {};
+            data.forEach(item => {
+                artworksCache[item.id] = item;
+                const card = document.createElement('div');
+                card.className = 'art-card'; card.setAttribute('data-artist', item.artist);
+                card.innerHTML = `
+                    <img src="${esc(item.image_url)}" class="art-img" alt="${esc(item.title)}" onclick="openImage('${esc(item.image_url)}','${esc(item.title)}')">
+                    <div class="art-info">
+                        <div class="art-title">${esc(item.title)}</div>
+                        <span class="art-artist">${item.artist === 'aisha'? 'عائشة' : 'هاجر'}</span>
+                        <p>${esc(item.description)}</p>
+                        <div class="visitor-actions">
+                            <div class="like-row">
+                                <button class="like-btn" id="like-btn-${item.id}" onclick="toggleLike(${item.id})">🤍 <span id="like-count-${item.id}">${item.likes || 0}</span></button>
+                            </div>
+                            <div class="comments-list" id="comments-${item.id}">جاري تحميل التعليقات...</div>
+                            <div class="comment-form">
+                                <input type="text" id="comment-input-${item.id}" placeholder="اكتب تعليقك كزائر...">
+                                <button class="auth-btn" onclick="addComment(${item.id})">إرسال</button>
+                            </div>
+                        </div>
+                        <div class="admin-actions ${currentUser? 'active' : ''}">
+                            <button class="action-btn btn-edit" data-id="${item.id}">تعديل</button>
+                            <button class="action-btn btn-delete" data-id="${item.id}">حذف</button>
+                        </div>
+                    </div>
+                `;
+                card.querySelector('.btn-edit').addEventListener('click', () => openEdit(item.id));
+                card.querySelector('.btn-delete').addEventListener('click', () => deleteArtwork(item.id));
+                gallery.appendChild(card);
+                loadComments(item.id);
+                checkLiked(item.id);
+            });
+        }
+
+        function checkLiked(id) {
+            if(localStorage.getItem('liked_'+id)){
+                const btn = document.getElementById(`like-btn-${id}`);
+                if(btn) { btn.classList.add('liked'); btn.innerHTML = `❤️ <span id="like-count-${id}">${artworksCache[id].likes || 0}</span>`; }
+            }
+        }
+        async function toggleLike(id) {
+            const likedKey = 'liked_'+id;
+            const isLiked = localStorage.getItem(likedKey);
+            const currentLikes = artworksCache[id].likes || 0;
+            const newLikes = isLiked? currentLikes - 1 : currentLikes + 1;
+            const { error } = await _supabase.from('artworks').update({ likes: newLikes }).eq('id', id);
+            if(error){ alert('تحتاج تضيف عمود likes في جدول artworks'); return; }
+            artworksCache[id].likes = newLikes;
+            document.getElementById(`like-count-${id}`).textContent = newLikes;
+            const btn = document.getElementById(`like-btn-${id}`);
+            if(isLiked){ localStorage.removeItem(likedKey); btn.classList.remove('liked'); btn.innerHTML = `🤍 <span id="like-count-${id}">${newLikes}</span>`; }
+            else { localStorage.setItem(likedKey, '1'); btn.classList.add('liked'); btn.innerHTML = `❤️ <span id="like-count-${id}">${newLikes}</span>`; btn.animate([{transform:'scale(1)'},{transform:'scale(1.4)'},{transform:'scale(1)'}],{duration:300}); }
+        }
+
+        // 1. دالة عرض التعليقات
+        async function loadComments(artworkId) {
+            const list = document.getElementById(`comments-${artworkId}`);
+            if (!list) return;
+
+            const { data, error } = await _supabase
+               .from('comments')
+               .select('*')
+               .eq('artwork_id', artworkId)
+               .order('created_at', { ascending: true });
+
+            if (error) {
+                console.error("خطأ جلب التعليقات:", error);
+                list.innerHTML = '<small style="color:red;">عذراً، حدث خطأ أثناء تحميل التعليقات</small>';
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                list.innerHTML = '<small>لا يوجد تعليقات بعد.. كن أول من يعلق!</small>';
+                return;
+            }
+
+            list.innerHTML = data.map(c => `<div class="comment-item">💬 ${esc(c.content)}</div>`).join('');
+        }
+
+        // 2. دالة إضافة تعليق جديد
+        async function addComment(artworkId) {
+            const input = document.getElementById(`comment-input-${artworkId}`);
+            if (!input) return;
+
+            const content = input.value.trim();
+            if (!content) return;
+
+            const { error } = await _supabase
+               .from('comments')
+               .insert([{ artwork_id: parseInt(artworkId, 10), content: content }]);
+
+            if (error) {
+                alert('حدث خطأ: ' + error.message);
+                return;
+            }
+
+            input.value = '';
+            loadComments(artworkId);
+        }
+
+        function openImage(url, title) {
+            document.getElementById('fullImage').src = url;
+            document.getElementById('fullTitle').textContent = title;
+            document.getElementById('imageModal').classList.add('active');
+        }
+        function closeImage() { document.getElementById('imageModal').classList.remove('active'); }
+
+        document.getElementById('artworkForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'جاري الرفع...';
+            const fileInput = document.getElementById('imageFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('الرجاء اختيار صورة أولاً');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'نشر اللوحة';
+                return;
+            }
+            try {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+                const { data: uploadData, error: uploadError } = await _supabase.storage.from('artworks').upload(fileName, file);
+                if (uploadError) { throw uploadError; }
+                const { data: urlData } = _supabase.storage.from('artworks').getPublicUrl(fileName);
+                const imageUrl = urlData.publicUrl;
+                const { error: insertError } = await _supabase.from('artworks').insert([{
+                    title: document.getElementById('title').value,
+                    artist: document.getElementById('artist').value,
+                    description: document.getElementById('description').value,
+                    image_url: imageUrl,
+                    likes: 0
+                }]);
+                if (insertError) { throw insertError; }
+                document.getElementById('artworkForm').reset();
+                loadArtworks();
+                alert('تم نشر اللوحة بنجاح! 🎨');
+            } catch (error) {
+                alert('حدث خطأ أثناء النشر: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'نشر اللوحة';
+            }
+        });
+
+        async function deleteArtwork(id) {
+            if (!confirm("هل أنتِ متأكدة من رغبتكِ في حذف هذه اللوحة؟")) return;
+            const { data, error } = await _supabase.from('artworks').delete().eq('id', id).select();
+            if (error) alert("خطأ أثناء الحذف: " + error.message); else if (!data || data.length === 0) alert("ما انحذفت، تأكدي من صلاحيات الحذف."); else loadArtworks();
+        }
+        function openEdit(id) { const item = artworksCache[id]; if (!item) return; editingId = id; document.getElementById('editTitle').value = item.title || ''; document.getElementById('editDescription').value = item.description || ''; document.getElementById('editModal').classList.add('active'); }
+        function closeEdit() { editingId = null; document.getElementById('editModal').classList.remove('active'); }
+        async function saveEdit() {
+            if (editingId === null) return;
+            const newTitle = document.getElementById('editTitle').value.trim();
+            const newDescription = document.getElementById('editDescription').value;
+            if (!newTitle) { alert("العنوان ما يصير يكون فاضي."); return; }
+            const { data, error } = await _supabase.from('artworks').update({ title: newTitle, description: newDescription }).eq('id', editingId).select();
+            if (error) alert("خطأ أثناء التعديل: " + error.message); else if (!data || data.length === 0) alert("ما تعدلت، تأكدي من الصلاحيات."); else { closeEdit(); loadArtworks(); }
+        }
+        function toggleModal(show) { document.getElementById('loginModal').classList.toggle('active', show); }
+        async function login() {
+            const email = document.getElementById('loginEmail').value; const password = document.getElementById('loginPass').value;
+            const { error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) alert(error.message); else toggleModal(false);
+        }
+        async function logout() { await _supabase.auth.signOut(); }
+        function filterArt(artist, evt) {
+            document.querySelectorAll('.filter-btn').forEach(b => { b.classList.remove('active'); });
+            evt.target.classList.add('active');
+            evt.target.style.animation = 'none'; evt.target.offsetHeight; evt.target.style.animation = null;
+            document.querySelectorAll('.art-card').forEach(c => { c.style.display = (artist === 'all' || c.getAttribute('data-artist') === artist)? 'flex' : 'none'; });
+        }
+        loadArtworks();
+    </script>
+</body>
+</html>
